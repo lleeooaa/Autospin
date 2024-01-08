@@ -51,20 +51,28 @@ def count_max():
 
 def swap(gameboard1,node1,node2):
     gameboard1=list(gameboard1)
-    gameboard1[5*node1[0]+node1[1]],gameboard1[5*node2[0]+node2[1]]=gameboard1[5*node2[0]+node2[1]],gameboard1[5*node1[0]+node1[1]]
+    gameboard1[6*node1[0]+node1[1]],gameboard1[6*node2[0]+node2[1]]=gameboard1[6*node2[0]+node2[1]],gameboard1[6*node1[0]+node1[1]]
     gameboard1=''.join(gameboard1)
     return gameboard1
 
 def get_neighbour(node):
     neighbour=[]
-    if(node[0]-1>=0):
+    if node[0]-1>=0:
         neighbour.append(([node[0]-1,node[1]],'N'))
-    if(node[0]+1<5):
+    if node[0]+1<5:
         neighbour.append(([node[0]+1,node[1]],'S'))
-    if(node[1]-1>=0):
+    if node[1]-1>=0:
         neighbour.append(([node[0],node[1]-1],'W'))
-    if(node[1]+1<6):
+    if node[1]+1<6:
         neighbour.append(([node[0],node[1]+1],'E'))
+    if node[0]-1>=0 and node[1]-1>=0:
+        neighbour.append(([node[0]-1,node[1]-1],'NW'))
+    if node[0]-1>=0 and node[1]+1<6:
+        neighbour.append(([node[0]-1,node[1]+1],'NE'))
+    if node[0]+1<5 and node[1]-1>=0:
+        neighbour.append(([node[0]+1,node[1]-1],'SW'))
+    if node[0]+1<5 and node[1]+1<6:
+        neighbour.append(([node[0]+1,node[1]+1],'SE'))
     return neighbour
     
 def compute(gameboard1):
@@ -121,39 +129,40 @@ def compute(gameboard1):
 def a_star():
     global queue
     global gameboard
-    global curr
+    global depth
     queue=[]
     global visited_list 
     visited_list={}
     last_dir=None
     print(max_score)
-    """
     for i in range(5):
         for j in range(6):
-            queue.append([[i,j], [], gameboard, last_dir, 0])
-    """
-    queue.append([[0,0], [], gameboard, last_dir, 0])
+            queue.append([[i,j], [], gameboard, last_dir, 0, [i,j]])
+    depth=0
     starting_time = timeit.default_timer()
     while len(queue)!=0:
         curr = queue.pop(0)
         if len(queue)>60000:
             for item in queue:
-                score=compute(item[2])
+                score=compute(item[2])-len(item[1])
                 item[4]=score
-            queue = sorted(queue, key=lambda tup: tup[4],reverse=True)[:1000]
+            queue = sorted(queue, key=lambda tup: tup[4],reverse=True)[:20000]
             print(queue[0][4])
-        if curr[4]>=max_score*0.65:
-            label_ans.insert(END,f"visited nodes: {len(visited_list)}\n")
-            label_ans.insert(END,f"time taken :{timeit.default_timer() - starting_time}\n")
-            label_ans.insert(END,"path: "+str(curr[1]))
+        if curr[4]>=max_score*0.8:
+            label_ans.insert(END,f"visited nodes : {len(visited_list)}\n")
+            label_ans.insert(END,f"time taken : {timeit.default_timer() - starting_time}\n")
+            label_ans.insert(END,f"starting point : {curr[5]}\n")
+            label_ans.insert(END,"path : "+str(curr[1]))
             break
         if curr[2] not in visited_list:
-            visited_list[curr[2]]=1
+            visited_list[curr[2]+str(curr[5][0])+str(curr[5][1])]=1
             for coordinate, paths in get_neighbour(curr[0]):
-                if (curr[3]=='N' and paths=='S') or (curr[3]=='S' and paths=='N') or (curr[3]=='E' and paths=='W') or (curr[3]=='W' and paths=='E'):
-                   continue
+                if (curr[3]=='N' and paths=='S') or (curr[3]=='S' and paths=='N') or (curr[3]=='E' and paths=='W') or (curr[3]=='W' and paths=='E') or (curr[3]=='NW' and paths=='NE') or (curr[3]=='NE' and paths=='NW') or (curr[3]=='SW' and paths=='SE') or (curr[3]=='SE' and paths=='SW'):
+                    continue
                 gameboard=swap(curr[2],curr[0],coordinate)
-                queue.append([coordinate, curr[1] + [paths], gameboard, paths,curr[4]])
+                if len(curr[1])>40:
+                    continue
+                queue.append([coordinate, curr[1] + [paths], gameboard, paths, curr[4], curr[5]])
 
 def num():
     print(len(visited_list),len(curr[1]),len(queue))
