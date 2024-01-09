@@ -134,6 +134,8 @@ def a_star():
     global gameboard
     global curr
     global visited_list 
+    best_path=[]
+    best_score=0
     visited_list={}
     queue=[]
     last_dir=None
@@ -144,19 +146,22 @@ def a_star():
     queue_length=0
     starting_time = timeit.default_timer()
     while len(queue)!=0:
-        curr = queue.pop(0)
         if queue_length>10000:
             for item in queue:
                 score=compute(item[2])-len(item[1])
                 item[4]=score
             queue = sorted(queue, key=lambda tup: tup[4],reverse=True)[:2000]
             queue_length=2000
+            if queue[0][4]>best_score:
+                best_path=[queue[0][1], queue[0][5]]
+                best_score=queue_length
             print(queue[0][4])
+        curr = queue.pop(0)
         if curr[4]>=max_score*0.9:
             label_ans.insert(END,f"visited nodes : {len(visited_list)}\n")
             label_ans.insert(END,f"time taken : {timeit.default_timer() - starting_time}\n")
             label_ans.insert(END,f"starting point : {curr[5]}\n")
-            label_ans.insert(END,"path : "+str(curr[1]))
+            label_ans.insert(END,"path : "+str(curr[1]))    
             return
         if curr[2]+str(curr[0][0])+str(curr[0][1]) not in visited_list:
             visited_list[curr[2]+str(curr[0][0])+str(curr[0][1])]=1
@@ -170,8 +175,9 @@ def a_star():
                 queue_length+=1
     label_ans.insert(END,f"visited nodes : {len(visited_list)}\n")
     label_ans.insert(END,f"time taken : {timeit.default_timer() - starting_time}\n")
-    label_ans.insert(END,f"starting point : {curr[5]}\n")
-    label_ans.insert(END,"path : "+str(curr[1]))
+    label_ans.insert(END,f"starting point : {best_path[1]}\n")
+    label_ans.insert(END,"path : "+str(best_path[0]))
+    print(best_score)
 
 def num():
     print(len(visited_list),len(curr[1]),len(queue))
