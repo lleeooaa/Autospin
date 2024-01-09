@@ -20,7 +20,6 @@ def start1():
     for i in rows:
         for j in i:
             gameboard+=j.get()
-    gameboard="042334352451020123331302541452"
     count_max()
     a_star()
 
@@ -37,6 +36,9 @@ def count_max():
     global count
     global max_score
     global max_combo
+    count=[0,0,0,0,0,0]
+    max_score=0
+    max_combo=0
     for i in gameboard:
         count[int(i)]+=1
     for i in count:
@@ -109,7 +111,7 @@ def compute(gameboard1):
                     combo_list.append([(i,j), (i+1,j), (i+2,j)])
                 added=False
 
-    #check special case at the end
+    #check special case at the end(2*3)
     for double in consecutive_list:
         a=b=None
         for combo in combo_list:
@@ -121,6 +123,7 @@ def compute(gameboard1):
             combo_list.remove(a)
             combo_list.remove(b)
             combo_list.append(list(set(a)|set(b))) 
+
     for combo in combo_list:
         score+=(len(combo)+1)*25
     score*=1+(len(combo_list)-1)*0.25
@@ -129,33 +132,34 @@ def compute(gameboard1):
 def a_star():
     global queue
     global gameboard
-    global depth
-    queue=[]
+    global curr
     global visited_list 
     visited_list={}
+    queue=[]
     last_dir=None
     print(max_score)
     for i in range(5):
         for j in range(6):
             queue.append([[i,j], [], gameboard, last_dir, 0, [i,j]])
-    depth=0
+    queue_length=0
     starting_time = timeit.default_timer()
     while len(queue)!=0:
         curr = queue.pop(0)
-        if len(queue)>60000:
+        if queue_length>10000:
             for item in queue:
                 score=compute(item[2])-len(item[1])
                 item[4]=score
-            queue = sorted(queue, key=lambda tup: tup[4],reverse=True)[:20000]
+            queue = sorted(queue, key=lambda tup: tup[4],reverse=True)[:2000]
+            queue_length=2000
             print(queue[0][4])
-        if curr[4]>=max_score*0.8:
+        if curr[4]>=max_score*0.9:
             label_ans.insert(END,f"visited nodes : {len(visited_list)}\n")
             label_ans.insert(END,f"time taken : {timeit.default_timer() - starting_time}\n")
             label_ans.insert(END,f"starting point : {curr[5]}\n")
             label_ans.insert(END,"path : "+str(curr[1]))
-            break
-        if curr[2] not in visited_list:
-            visited_list[curr[2]+str(curr[5][0])+str(curr[5][1])]=1
+            return
+        if curr[2]+str(curr[0][0])+str(curr[0][1]) not in visited_list:
+            visited_list[curr[2]+str(curr[0][0])+str(curr[0][1])]=1
             for coordinate, paths in get_neighbour(curr[0]):
                 if (curr[3]=='N' and paths=='S') or (curr[3]=='S' and paths=='N') or (curr[3]=='E' and paths=='W') or (curr[3]=='W' and paths=='E') or (curr[3]=='NW' and paths=='NE') or (curr[3]=='NE' and paths=='NW') or (curr[3]=='SW' and paths=='SE') or (curr[3]=='SE' and paths=='SW'):
                     continue
@@ -163,6 +167,11 @@ def a_star():
                 if len(curr[1])>40:
                     continue
                 queue.append([coordinate, curr[1] + [paths], gameboard, paths, curr[4], curr[5]])
+                queue_length+=1
+    label_ans.insert(END,f"visited nodes : {len(visited_list)}\n")
+    label_ans.insert(END,f"time taken : {timeit.default_timer() - starting_time}\n")
+    label_ans.insert(END,f"starting point : {curr[5]}\n")
+    label_ans.insert(END,"path : "+str(curr[1]))
 
 def num():
     print(len(visited_list),len(curr[1]),len(queue))
