@@ -27,10 +27,6 @@ def thread():
     t1=threading.Thread(target=start1)
     t1.start()
 
-def clearUI():
-    for i in rows:
-        for j in i:
-            j.place_forget()
 
 def count_max():
     global count
@@ -154,7 +150,7 @@ def a_star():
             queue_length=2000
             if queue[0][4]>best_score:
                 best_path=[queue[0][1], queue[0][5]]
-                best_score=queue_length
+                best_score=queue[0][4]
             print(queue[0][4])
         curr = queue.pop(0)
         if curr[4]>=max_score*0.9:
